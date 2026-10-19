@@ -11,7 +11,7 @@ permissions:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: fadil2708/eternal
+  IMAGE_NAME: telda-skb/eternal
 
 jobs:
   ci:

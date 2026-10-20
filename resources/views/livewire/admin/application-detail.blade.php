@@ -652,6 +652,7 @@
                 <div class="ard-field">
                     <label>Status Lamaran</label>
                     <select wire:model.live="reviewStatus" class="input">
+                        <option value="Pilih Status Lamaran">Pilih Status Lamaran</option>
                         <option value="under_review">Under Review</option>
                         <option value="interview_scheduled">Jadwalkan Interview</option>
                         <option value="accepted">Terima</option>

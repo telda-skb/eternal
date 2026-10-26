@@ -186,10 +186,34 @@
     /* ═══ SIDEBAR ═══ */
     .sid-actions {
         position: sticky;
-        top: 90px;
+        top: 8px;
+        z-index: 1;
+    }
+    .sid-actions .sid-card { padding: 18px; }
+    .sid-actions .sid-card-head { margin-bottom: 14px; }
+    .sid-actions-list {
         display: flex;
         flex-direction: column;
         gap: 10px;
+    }
+    .sid-actions .sid-btn {
+        width: 100%;
+        min-height: 42px;
+    }
+    .sid-divider {
+        height: 1px;
+        background: var(--sid-border);
+        margin: 14px 0 10px;
+    }
+    .sid-actions .sid-back {
+        justify-content: center;
+        width: 100%;
+        padding: 8px 0;
+    }
+    .sid-btn:focus-visible,
+    .sid-back:focus-visible {
+        outline: 2px solid var(--sid-primary);
+        outline-offset: 2px;
     }
     .sid-btn {
         display: inline-flex;
@@ -353,16 +377,21 @@
         </div>
 
         <div class="sid-actions">
-            <div class="sid-card" style="padding:18px">
-                <div class="sid-card-head" style="margin-bottom:14px">
+            <div class="sid-card">
+                <div class="sid-card-head">
                     <h3 class="sid-card-title"><i class="ti ti-bolt"></i> Aksi</h3>
                 </div>
-                <a href="{{ route('supervisor.logbooks', ['intern_id' => $internship->intern_id]) }}" class="sid-btn sid-btn-outline">
-                    <i class="ti ti-notebook"></i> Lihat Logbook
-                </a>
-                <a href="{{ route('supervisor.evaluations.show', $internship->id) }}" class="sid-btn sid-btn-primary">
-                    <i class="ti ti-star"></i> Beri Nilai
-                </a>
+                <div class="sid-actions-list">
+                    <a href="{{ route('supervisor.logbooks', ['intern_id' => $internship->intern_id]) }}"
+                       wire:navigate class="sid-btn sid-btn-outline">
+                        <i class="ti ti-notebook"></i> Lihat Logbook
+                    </a>
+                    <a href="{{ route('supervisor.evaluations.show', $internship->id) }}"
+                       wire:navigate class="sid-btn sid-btn-primary">
+                        <i class="ti ti-star"></i> Beri Nilai
+                    </a>
+                </div>
+                <div class="sid-divider"></div>
                 <a href="{{ route('supervisor.interns.index') }}" wire:navigate class="sid-back">
                     <i class="ti ti-arrow-left"></i> Kembali ke daftar
                 </a>

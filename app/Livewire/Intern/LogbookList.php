@@ -71,6 +71,8 @@ class LogbookList extends Component
             ->latest('activity_date')
             ->paginate(15);
 
-        return view('livewire.intern.logbook-list', compact('logbooks'));
+        $attendanceSummary = $this->logbookService->attendanceSummaryForIntern(auth()->id());
+
+        return view('livewire.intern.logbook-list', compact('logbooks', 'attendanceSummary'));
     }
 }

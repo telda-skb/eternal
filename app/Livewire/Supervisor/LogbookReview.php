@@ -2,9 +2,11 @@
 
 namespace App\Livewire\Supervisor;
 
+use App\Models\Internship;
 use App\Models\Logbook;
 use App\Models\User;
 use App\Services\LogbookService;
+use Illuminate\Support\Collection;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -76,6 +78,30 @@ class LogbookReview extends Component
         $this->selectedLogbooks = [];
     }
 
+    public function toggleIntern(string $internId): void
+    {
+        if ($this->internId === $internId) {
+            $this->clearInternFilter();
+
+            return;
+        }
+
+        $internship = Internship::with('intern.internProfile')
+            ->where('supervisor_id', auth()->id())
+            ->where('intern_id', $internId)
+            ->first();
+
+        if (! $internship) {
+            return;
+        }
+
+        $this->internId = $internId;
+        $this->filteredInternName = $internship->intern?->internProfile?->full_name
+            ?? $internship->intern?->email;
+        $this->resetPage();
+        $this->selectedLogbooks = [];
+    }
+
     public function openRevision(string $id): void
     {
         $this->selectedLogbookId = $id;
@@ -141,6 +167,37 @@ class LogbookReview extends Component
             $this->internId
         );
 
-        return view('livewire.supervisor.logbook-review', compact('logbooks'));
+        $mentoredInterns = $this->mentoredInterns();
+
+        return view('livewire.supervisor.logbook-review', compact('logbooks', 'mentoredInterns'));
+    }
+
+    private function mentoredInterns(): Collection
+    {
+        $internships = Internship::with('intern.internProfile')
+            ->where('supervisor_id', auth()->id())
+            ->where('status', 'active')
+            ->get()
+            ->unique('intern_id')
+            ->values();
+
+        if ($internships->isEmpty()) {
+            return new Collection;
+        }
+
+        $summaries = $this->logbookService->attendanceSummaryByIntern(auth()->id());
+
+        return $internships
+            ->map(fn (Internship $internship) => [
+                'id' => (string) $internship->intern_id,
+                'name' => $internship->intern?->internProfile?->full_name
+                    ?? $internship->intern?->email
+                    ?? 'Peserta',
+                'photo' => $internship->intern?->internProfile?->photo_url,
+                'attendance' => $summaries[$internship->intern_id]
+                    ?? ['hadir' => 0, 'sakit' => 0, 'izin' => 0, 'total' => 0],
+            ])
+            ->sortBy('name')
+            ->values();
     }
 }

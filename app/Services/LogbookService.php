@@ -5,8 +5,10 @@ namespace App\Services;
 use App\Models\Internship;
 use App\Models\Logbook;
 use App\Models\User;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class LogbookService
@@ -32,6 +34,48 @@ class LogbookService
             'submitted' => $rows['submitted'] ?? 0,
             'approved' => $rows['approved'] ?? 0,
             'revision_requested' => $rows['revision_requested'] ?? 0,
+        ];
+    }
+
+    public function attendanceSummaryForIntern(string $internId, ?CarbonInterface $month = null): array
+    {
+        $period = $month ?? Carbon::now();
+
+        $rows = Logbook::query()
+            ->where('intern_id', $internId)
+            ->whereBetween('activity_date', [$period->copy()->startOfMonth(), $period->copy()->endOfMonth()])
+            ->select('attendance_type', DB::raw('count(*) as total'))
+            ->groupBy('attendance_type')
+            ->pluck('total', 'attendance_type')
+            ->all();
+
+        return $this->formatAttendanceSummary($rows);
+    }
+
+    public function attendanceSummaryByIntern(string $supervisorId, ?CarbonInterface $month = null): array
+    {
+        $period = $month ?? Carbon::now();
+
+        $rows = Logbook::query()
+            ->whereHas('internship', fn (Builder $q) => $q->where('supervisor_id', $supervisorId))
+            ->whereBetween('activity_date', [$period->copy()->startOfMonth(), $period->copy()->endOfMonth()])
+            ->groupBy('intern_id', 'attendance_type')
+            ->selectRaw('intern_id, attendance_type, count(*) as total')
+            ->get()
+            ->groupBy('intern_id')
+            ->map(fn ($group) => $this->formatAttendanceSummary($group->pluck('total', 'attendance_type')->all()))
+            ->all();
+
+        return $rows;
+    }
+
+    private function formatAttendanceSummary(array $rows): array
+    {
+        return [
+            'hadir' => (int) ($rows[Logbook::TYPE_HADIR] ?? 0),
+            'sakit' => (int) ($rows[Logbook::TYPE_SAKIT] ?? 0),
+            'izin' => (int) ($rows[Logbook::TYPE_IZIN] ?? 0),
+            'total' => (int) array_sum($rows),
         ];
     }
 

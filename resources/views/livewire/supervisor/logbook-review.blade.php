@@ -108,35 +108,111 @@
             color: #fff;
         }
 
-        /* ═══ INTERN FILTER CHIP ═══ */
-        .lgr-intern-filter {
+        /* ═══ PESERTA BIMBINGAN ═══ */
+        .lgr-interns {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: #fff;
+            border: 1px solid var(--lgr-border);
+            border-radius: 14px;
+            padding: 12px 16px;
+            margin-bottom: 12px;
+        }
+        .lgr-interns-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .lgr-interns-title {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 12px;
+            font-weight: 800;
+            color: var(--lgr-text);
+        }
+        .lgr-interns-title i { color: var(--lgr-primary); font-size: 15px; }
+        .lgr-interns-hint {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--lgr-muted);
+        }
+        .lgr-interns-hint.is-filtered { color: var(--lgr-primary); }
+        .lgr-interns-scroll {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 2px;
+            scrollbar-width: thin;
+        }
+        .lgr-intern-chip {
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            padding: 8px 14px;
-            margin-bottom: 12px;
+            padding: 5px 12px 5px 5px;
+            border: 1px solid var(--lgr-border);
             border-radius: 99px;
-            background: var(--lgr-primary-light);
-            border: 1px solid #dbe3fb;
-            color: var(--lgr-primary);
+            background: #fff;
+            font-family: inherit;
             font-size: 12px;
             font-weight: 700;
+            color: var(--lgr-text);
+            cursor: pointer;
+            white-space: nowrap;
+            flex: 0 0 auto;
+            transition: border-color .15s ease, background .15s ease, box-shadow .15s ease;
         }
-        .lgr-intern-filter button {
+        .lgr-intern-chip:hover {
+            border-color: var(--lgr-primary);
+            background: var(--lgr-primary-light);
+        }
+        .lgr-intern-chip.is-active {
+            border-color: var(--lgr-primary);
+            background: var(--lgr-primary-light);
+            color: var(--lgr-primary-dark);
+            box-shadow: 0 0 0 3px rgba(49, 85, 231, .12);
+        }
+        .lgr-intern-chip.is-all { padding-left: 12px; }
+        .lgr-intern-name {
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .lgr-intern-all-icon {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 18px;
-            height: 18px;
-            border: none;
+            width: 24px;
+            height: 24px;
             border-radius: 50%;
-            background: rgba(49, 85, 231, .15);
-            color: var(--lgr-primary);
-            font-size: 12px;
-            cursor: pointer;
-            transition: background .15s ease;
+            background: var(--lgr-gray-bg);
+            color: var(--lgr-muted);
+            font-size: 13px;
+            flex-shrink: 0;
         }
-        .lgr-intern-filter button:hover { background: rgba(49, 85, 231, .28); }
+        .lgr-intern-chip.is-active .lgr-intern-all-icon {
+            background: var(--lgr-primary);
+            color: #fff;
+        }
+        .lgr-intern-att { display: inline-flex; align-items: center; gap: 4px; }
+        .lgr-att {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            padding: 2px 7px;
+            border-radius: 99px;
+            font-size: 10px;
+            font-weight: 800;
+            line-height: 1.5;
+        }
+        .lgr-att i { font-size: 11px; }
+        .lgr-att.is-hadir { background: #ecfdf5; color: #16a34a; }
+        .lgr-att.is-sakit { background: #fffbeb; color: #b45309; }
+        .lgr-att.is-izin  { background: #eef2ff; color: #4338ca; }
 
         /* ═══ BULK BAR ═══ */
         .lgr-bulk {
@@ -515,14 +591,37 @@
         </div>
     </div>
 
-    {{-- ═══ INTERN FILTER ═══ --}}
-    @if($filteredInternName)
-    <div class="lgr-intern-filter">
-        <i class="ti ti-user"></i>
-        Filter peserta: {{ $filteredInternName }}
-        <button wire:click="clearInternFilter" aria-label="Hapus filter peserta">
-            <i class="ti ti-x"></i>
-        </button>
+    {{-- ═══ PESERTA BIMBINGAN ═══ --}}
+    @if($mentoredInterns->isNotEmpty())
+    <div class="lgr-interns">
+        <div class="lgr-interns-head">
+            <span class="lgr-interns-title"><i class="ti ti-users"></i> Peserta Bimbingan</span>
+            <span class="lgr-interns-hint {{ $filteredInternName ? 'is-filtered' : '' }}">
+                {{ $filteredInternName ? 'Menampilkan logbook: '.$filteredInternName : 'Rekap kehadiran '.now()->translatedFormat('F Y') }}
+            </span>
+        </div>
+        <div class="lgr-interns-scroll">
+            <button type="button" wire:click="clearInternFilter"
+                    class="lgr-intern-chip is-all {{ $internId === null ? 'is-active' : '' }}"
+                    aria-pressed="{{ $internId === null ? 'true' : 'false' }}">
+                <span class="lgr-intern-all-icon"><i class="ti ti-layout-grid"></i></span>
+                Semua Peserta
+            </button>
+            @foreach($mentoredInterns as $intern)
+            <button type="button" wire:click="toggleIntern('{{ $intern['id'] }}')"
+                    class="lgr-intern-chip {{ $internId === $intern['id'] ? 'is-active' : '' }}"
+                    title="{{ $intern['name'] }} — Hadir {{ $intern['attendance']['hadir'] }}, Sakit {{ $intern['attendance']['sakit'] }}, Izin {{ $intern['attendance']['izin'] }} (bulan ini)"
+                    aria-pressed="{{ $internId === $intern['id'] ? 'true' : 'false' }}">
+                <x-avatar :name="$intern['name']" :photo="$intern['photo']" :size="24" />
+                <span class="lgr-intern-name">{{ $intern['name'] }}</span>
+                <span class="lgr-intern-att">
+                    <span class="lgr-att is-hadir" title="Hadir"><i class="ti ti-user-check"></i>{{ $intern['attendance']['hadir'] }}</span>
+                    <span class="lgr-att is-sakit" title="Sakit"><i class="ti ti-heart-rate-monitor"></i>{{ $intern['attendance']['sakit'] }}</span>
+                    <span class="lgr-att is-izin" title="Izin"><i class="ti ti-user-off"></i>{{ $intern['attendance']['izin'] }}</span>
+                </span>
+            </button>
+            @endforeach
+        </div>
     </div>
     @endif
 

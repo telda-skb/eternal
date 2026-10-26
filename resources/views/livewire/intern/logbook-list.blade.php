@@ -63,6 +63,109 @@
             font-size: 14px;
         }
 
+        /* ===== ATTENDANCE SUMMARY ===== */
+        .lb-attendance {
+            background: #fff;
+            border: 1px solid var(--lb-border);
+            border-radius: var(--lb-radius);
+            box-shadow: var(--lb-shadow-sm);
+            padding: 14px 16px;
+            margin-bottom: 16px;
+        }
+
+        .lb-attendance-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .lb-attendance-head span:first-child {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--lb-text);
+        }
+
+        .lb-attendance-head span:first-child i {
+            color: var(--lb-primary);
+            font-size: 15px;
+        }
+
+        .lb-attendance-month {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--lb-text-secondary);
+            background: var(--lb-primary-light);
+            border-radius: 99px;
+            padding: 4px 10px;
+            white-space: nowrap;
+        }
+
+        .lb-attendance-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .lb-att-card {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 11px 12px;
+            border: 1px solid var(--lb-border);
+            border-radius: var(--lb-radius-sm);
+            background: #f8fafc;
+        }
+
+        .lb-att-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            flex-shrink: 0;
+            font-size: 16px;
+        }
+
+        .lb-att-card strong {
+            display: block;
+            font-size: 19px;
+            font-weight: 800;
+            line-height: 1.1;
+            color: var(--lb-text);
+        }
+
+        .lb-att-card span.lb-att-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--lb-text-secondary);
+        }
+
+        .lb-att-card.is-hadir .lb-att-icon { background: #ecfdf5; color: #16a34a; }
+        .lb-att-card.is-sakit .lb-att-icon { background: #fffbeb; color: #b45309; }
+        .lb-att-card.is-izin  .lb-att-icon { background: #eef2ff; color: #4338ca; }
+        .lb-att-card.is-sakit { background: #fffdf7; }
+        .lb-att-card.is-izin  { background: #f8f9ff; }
+        .lb-att-card.is-hadir { background: #f6fdfa; }
+
+        /* ===== BADGES ===== */
+        .lb-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 9px;
+            border-radius: 99px;
+            font-size: 11px;
+            font-weight: 700;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
         /* ===== BUTTONS ===== */
         .lb-btn-primary {
             display: inline-flex;
@@ -337,6 +440,7 @@
         @media (max-width: 640px) {
             .lb-header { flex-direction: column; }
             .lb-header-date { align-self: flex-start; }
+            .lb-attendance-grid { grid-template-columns: 1fr; }
             .lb-card-top { flex-direction: column; }
             .lb-row { flex-direction: column; gap: 4px; }
             .lb-row-label { min-width: 0; }
@@ -360,6 +464,37 @@
             <i class="ti ti-calendar"></i>
             {{ now()->translatedFormat('l, d M Y') }}
         </span>
+    </div>
+
+    {{-- ATTENDANCE SUMMARY --}}
+    <div class="lb-attendance">
+        <div class="lb-attendance-head">
+            <span><i class="ti ti-shield-check"></i> Kehadiran Bulan Ini</span>
+            <span class="lb-attendance-month">{{ now()->translatedFormat('F Y') }}</span>
+        </div>
+        <div class="lb-attendance-grid">
+            <div class="lb-att-card is-hadir">
+                <span class="lb-att-icon"><i class="ti ti-user-check"></i></span>
+                <div>
+                    <strong>{{ $attendanceSummary['hadir'] }}</strong>
+                    <span class="lb-att-label">Hadir</span>
+                </div>
+            </div>
+            <div class="lb-att-card is-sakit">
+                <span class="lb-att-icon"><i class="ti ti-heart-rate-monitor"></i></span>
+                <div>
+                    <strong>{{ $attendanceSummary['sakit'] }}</strong>
+                    <span class="lb-att-label">Sakit</span>
+                </div>
+            </div>
+            <div class="lb-att-card is-izin">
+                <span class="lb-att-icon"><i class="ti ti-user-off"></i></span>
+                <div>
+                    <strong>{{ $attendanceSummary['izin'] }}</strong>
+                    <span class="lb-att-label">Izin</span>
+                </div>
+            </div>
+        </div>
     </div>
 
     @if(!$hasActiveInternship)
@@ -399,7 +534,11 @@
                         {{ $logbook->activity_date?->isoFormat('dddd, D MMMM Y') ?? '—' }}
                     </span>
                     <div style="display:flex;gap:6px;align-items:center;">
-                        @if($logbook->attendance_type === 'sakit')
+                        @if($logbook->attendance_type === 'hadir')
+                            <span class="lb-badge" style="background:#ecfdf5;color:#15803d;border:1px solid #a7f3d0;">
+                                <i class="ti ti-user-check"></i> Hadir
+                            </span>
+                        @elseif($logbook->attendance_type === 'sakit')
                             <span class="lb-badge lb-badge-sakit" style="background:#fef3c7;color:#92400e;border:1px solid #fde68a;">
                                 <i class="ti ti-heart-rate-monitor"></i> Sakit
                             </span>
